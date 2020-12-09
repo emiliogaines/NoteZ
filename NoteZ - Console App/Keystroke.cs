@@ -4,7 +4,7 @@ using System.Text;
 
 namespace NoteZ___Console_App
 {
-    class Keystroke
+    public class Keystroke
     {
         public char character;
         public char prevCharacter = ' ';
@@ -42,10 +42,14 @@ namespace NoteZ___Console_App
             Console.SetCursorPosition(x, y);
             Console.Write(prevCharacter);
             Console.SetCursorPosition(x, y);
+            if (Char.IsLetterOrDigit(prevCharacter))
+            {
+                Console.CursorLeft++;
+            }
             isUndoed = true;
         }
 
-        public bool isManipulated()
+        public bool IsManipulated()
         {
             return isDestroyed || isUndoed;
         }

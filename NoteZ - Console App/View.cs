@@ -107,6 +107,7 @@ namespace NoteZ___Console_App
 
         public static void DrawOptions(SelectableOption[] options, Action<int> callback)
         {
+            while (Console.KeyAvailable) Console.ReadKey(true);
             int indexX = 3; //Padding to not interfere with borders
             int indexY = 5; //Padding to not interfere with borders
             int maxIndexX = Console.WindowWidth - 2;
@@ -188,18 +189,37 @@ namespace NoteZ___Console_App
             }
         }
 
-        public static void GetInput()
+        public static void NoteEditing(FileHandler file = null)
         {
-            List<Keystroke> keystrokeStack = new List<Keystroke>();
-
             //Padding to not interfere with borders
             int indexX = 3; 
-            int maxIndexX = Console.WindowWidth - 3;
             int indexY = 4;
-            int maxIndexY = Console.WindowHeight - 5;
 
             Console.SetCursorPosition(indexX, indexY);
             Console.CursorVisible = true;
+
+            List<Keystroke> keystrokeStack;
+
+            if (file == null)
+            {
+                keystrokeStack = new List<Keystroke>();
+            }
+            else
+            {
+                keystrokeStack = new List<Keystroke>(file.text);
+                foreach(var keystroke in keystrokeStack)
+                {
+                    Console.SetCursorPosition(keystroke.x, keystroke.y);
+                    Console.Write(keystroke.character);
+                }
+                if(keystrokeStack.Count > 0)
+                {
+                    var xPos = keystrokeStack[keystrokeStack.Count - 1].x + 1;
+                    var yPos = keystrokeStack[keystrokeStack.Count - 1].y;
+                    Console.SetCursorPosition(xPos, yPos);
+                    checkOutOfBoundsEditing();
+                }
+            }
 
             while (Console.KeyAvailable) Console.ReadKey(true);
             while (true) { 
@@ -210,7 +230,7 @@ namespace NoteZ___Console_App
                     var keyPressed = new Keystroke(key.KeyChar, Console.CursorLeft, Console.CursorTop);
                     for (int i = keystrokeStack.Count; i-- > 0;)
                     {
-                        if(keystrokeStack[i].x == keyPressed.x && keystrokeStack[i].y == keyPressed.y && !keystrokeStack[i].isDestroyed && !keystrokeStack[i].isUndoed)
+                        if (keystrokeStack[i].x == keyPressed.x && keystrokeStack[i].y == keyPressed.y && !keystrokeStack[i].isDestroyed && !keystrokeStack[i].isUndoed)
                         {
                             keyPressed.prevCharacter = keystrokeStack[i].character;
                             break;
@@ -224,7 +244,7 @@ namespace NoteZ___Console_App
                     {
                         for (int i = keystrokeStack.Count; i-- > 0;)
                         {
-                            if (!keystrokeStack[i].isManipulated())
+                            if (!keystrokeStack[i].IsManipulated())
                             {
                                 var destroyedKeystroke = new Keystroke(' ', keystrokeStack[i].x, keystrokeStack[i].y);
                                 destroyedKeystroke.prevCharacter = keystrokeStack[i].character;
@@ -251,9 +271,9 @@ namespace NoteZ___Console_App
 
                     if (key.Key == ConsoleKey.F2)
                     {
-                        for(int i = 0; i < keystrokeStack.Count; i++)
+                        for (int i = 0; i < keystrokeStack.Count; i++)
                         {
-                            if (keystrokeStack[i].isManipulated())
+                            if (keystrokeStack[i].IsManipulated())
                             {
                                 keystrokeStack[i].Create();
                                 break;
@@ -261,37 +281,76 @@ namespace NoteZ___Console_App
                         }
                     }
 
-                    if(key.Key == ConsoleKey.Enter)
+                    if (key.Key == ConsoleKey.Enter)
                     {
                         Console.CursorTop += 1;
                         Console.CursorLeft = indexX;
                     }
-                }
 
-                if (Console.CursorLeft >= maxIndexX && Console.CursorTop <= maxIndexY)
-                {
-                    Console.CursorTop += 1;
-                    Console.CursorLeft = indexX;
-                }
+                    if (key.Key == ConsoleKey.RightArrow)
+                    {
+                        Console.CursorLeft += 1;
+                    }
 
-                if (Console.CursorTop > maxIndexY)
-                {
-                    Console.CursorVisible = false;
-                }
+                    if (key.Key == ConsoleKey.LeftArrow)
+                    {
+                        Console.CursorLeft -= 1;
+                    }
 
-                if (Console.CursorLeft < indexX)
-                {
-                    Console.CursorLeft = indexX;
+                    if (key.Key == ConsoleKey.Escape)
+                    {
+                        FileHandler saveObject;
+                        if(file != null)
+                        {
+                            saveObject = file;
+                            saveObject.text = keystrokeStack.ToArray();
+                        }
+                        else
+                        {
+                            saveObject = new FileHandler(keystrokeStack.ToArray());
+                        }
+                        
+                        saveObject.Save();
+                        Console.CursorVisible = false;
+                        return;
+                    }
                 }
-
-                if (Console.CursorTop < indexY)
-                {
-                    Console.CursorTop = indexY;
-                }
+                checkOutOfBoundsEditing();
+                
             }
+            }
+        private static void checkOutOfBoundsEditing()
+        {
+            //Padding to not interfere with borders
+            int indexX = 3;
+            int indexY = 4;
+            int maxIndexX = Console.WindowWidth - 3;
+            int maxIndexY = Console.WindowHeight - 5;
+            if (Console.CursorLeft >= maxIndexX && Console.CursorTop <= maxIndexY)
+            {
+                Console.CursorTop += 1;
+                Console.CursorLeft = indexX;
+            }
+
+            if (Console.CursorTop > maxIndexY)
+            {
+                Console.CursorVisible = false;
+            }
+
+            if (Console.CursorLeft < indexX)
+            {
+                Console.CursorLeft = indexX;
+            }
+
+            if (Console.CursorTop < indexY)
+            {
+                Console.CursorTop = indexY;
             }
         }
     }
+
+    
+}
 
     enum ConsoleChar
     {

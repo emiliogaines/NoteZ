@@ -9,7 +9,7 @@ namespace NoteZ___Console_App
         public string title;
         public int x, y;
         public int realPositionX, realPositionY;
-        public SelectableOption(string title, int x, int y)
+        public SelectableOption(string title, int x = 0, int y = 0)
         {
             this.title = title;
             this.x = x;
